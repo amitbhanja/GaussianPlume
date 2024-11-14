@@ -107,8 +107,10 @@ private:
     scalar sensor_uncertainty;
     velocities wind_velocity;
     scalar ppm_converter_factor;
+    scalar flow_rate;
 
-    std::vector<std::pair<std::string, std::string> > concentration_values;
+    std::vector<std::pair<std::string, std::string> > reverse_model_values;
+    std::vector<std::pair<std::string, std::string> > forward_model_values;
     Point distance(scalar lat1, scalar lon1, scalar lat2, scalar lon2);
 
 
@@ -135,7 +137,7 @@ public:
 
     scalar compute_Concentration_old(Point cell, scalar Q, Point U, int& stabilityClass, Point& stack_outlet);
 
-    scalar compute_Concentration(const Point cell, scalar Q, Point U, int stabilityClass, Point& stack_outlet);
+    scalar compute_Concentration(const Point cell, scalar Q, Velocity U, int stabilityClass, Point& stack_outlet);
 
     scalar compute_amountQ(Point& cell, scalar C_meas, Velocity& U, int stabilityClass, Point& stack_outlet, Point GPS_unc, scalar Sensor_unc);
 
@@ -145,9 +147,10 @@ public:
     void addreceiver_point(Point& point) { receiver_points.emplace_back(point); }
     void addwind_velocity(Velocity& vel) { wind_velocity.emplace_back(vel); }
 
-    std::vector<std::pair<std::string, std::string> > getConcentration() { return concentration_values; }
+    std::vector<std::pair<std::string, std::string> > getFlowRates() { return reverse_model_values; }
+    std::vector<std::pair<std::string, std::string> > getConcentrations() { return forward_model_values; }
     void setStackOutlet(Point& point) { stack_outlet = point; }
-
+    void setFlowRate(scalar val) { flow_rate = val; }
     //void computeSigmaYSigmaZ_phi(scalar dx, int stability, scalar& sigma_y, scalar& sigma_z, scalar& phi);
 
 };

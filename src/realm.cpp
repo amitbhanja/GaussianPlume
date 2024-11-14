@@ -155,7 +155,15 @@ namespace ufvm
             std::cout << "Distance of " << receiver_points[i] << " from " << stack_outlet << " " << recv_point << std::endl;
             auto recv_meas = receiver_measurements[i];
             auto wind_vel = wind_velocity[i];
+            for(int j = 0; j < 6; ++j)
+            {
+                scalar conc = compute_Concentration(recv_point, flow_rate, wind_vel, j, origin_coordinate);
+                std::string keyword = std::string(receiver_points[i]) + "," + std::to_string(j) + "," + std::to_string(recv_meas);
+                forward_model_values.emplace_back(std::make_pair(keyword, std::to_string(conc)));
+                std::cout << "Concentration " << recv_point << " with stability class " << j << " : " << conc << std::endl;
+            }
 
+            /*
             auto receiver_oldVect = rotatePointInv(recv_point, origin_coordinate, wind_vel.direction());
 
             for(int j = 0; j < 6; ++j)
@@ -163,10 +171,11 @@ namespace ufvm
                 scalar Q_out = compute_amountQ(receiver_oldVect, recv_meas, wind_vel, j, origin_coordinate, {0,0,0}, 0);
                 //Q_out *= 3600;
                 std::string keyword = std::string(receiver_points[i]) + "," + std::to_string(j);
-                concentration_values.emplace_back(std::make_pair(keyword, std::to_string(Q_out)));
+                reverse_model_values.emplace_back(std::make_pair(keyword, std::to_string(Q_out)));
 
                 std::cout << "Flow Rate for " << recv_point << " with stability class " << j << " : " << Q_out << std::endl;
             }
+            */
         }
     }
 
@@ -551,10 +560,9 @@ namespace ufvm
         sigma_y = 465.11628*dx/1000*tan(phi);
     }
 
-    scalar realm::compute_Concentration(Point cell, scalar Q, Point U, int stabilityClass, Point& stack_outlet)
+    scalar realm::compute_Concentration(Point cell, scalar Q, Velocity U, int stabilityClass, Point& stack_outlet)
     {   
-        scalar windAngle = -1;
-        computeAlpha_x(windAngle, U);
+        scalar windAngle = U.direction();
         
         Point oldVect = rotatePointInv(cell, stack_outlet, windAngle);
 
@@ -562,7 +570,8 @@ namespace ufvm
         scalar y = oldVect.y();
         scalar z = cell.z();
 
-        scalar U_mag = std::sqrt(pow(U.x(),2) + pow(U.y(),2));
+        scalar U_mag = U.magnitude();
+        //scalar U_mag = std::sqrt(pow(U.x(),2) + pow(U.y(),2));
 
         scalar sigma_y = -1;
         scalar sigma_z = -1;
