@@ -29,7 +29,6 @@
 static const double molar_volume_ideal_gas = 24.45; // litres per mole
 
 static double molar_mass = 0;
-static double flow_rate = 0;
 static ufvm::Point stack_outlet(0,0,0);
 
 std::string trim(const std::string& str)
@@ -135,18 +134,6 @@ bool readInputParams()
                     return false;
                 }
             }
-            else if(key == "flow_rate")
-            {
-                if(auto valueDouble = to_double(value))
-                {
-                    flow_rate = *valueDouble;
-                    flow_rate /= 3600;
-                }
-                else
-                {
-                    return false;
-                }
-            }
         }
     }
     std::cout << "Molar Mass " << molar_mass << std::endl;
@@ -229,7 +216,6 @@ std::vector<std::pair<std::string, std::string>> process_chunk(const std::string
         }
     }
 
-    realm.setFlowRate(flow_rate);
     realm.run();
     return realm.getConcentrations();
 }
