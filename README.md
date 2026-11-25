@@ -303,12 +303,3 @@ Still open:
   speed / solar radiation via the Pasquill table).
 - A small Python/Matplotlib script to plot measured vs. modelled values on a map.
 
-## Credits
-
-- Gaussian plume implementation and dispersion-coefficient tables by
-  Jorian Schlunegger (September 2024), originally written inside the
-  **uFVM-CPP** CFD framework (Fadl Moukalled, Mhamad Mahdi Alloush, Adam Fares) —
-  which is why the source headers and the `ufvm` namespace carry that name.
-- Standalone CSV forward model, input parsing and project packaging by
-  Amit Bhanja (November 2024).
-- `latlon2local`, `cosd`, `sind` were generated with MATLAB Coder 24.2.
