@@ -152,6 +152,7 @@ namespace ufvm
         for(int i = 0; i < receiver_points.size(); ++i)
         {
             auto recv_point = distance(stack_outlet.x(), stack_outlet.y(), receiver_points[i].x(), receiver_points[i].y());
+            recv_point.z() = receiver_points[i].z();  // keep the sensor height from the input
             std::cout << "Distance of " << receiver_points[i] << " from " << stack_outlet << " " << recv_point << std::endl;
             auto recv_meas = receiver_measurements[i];
             auto wind_vel = wind_velocity[i];

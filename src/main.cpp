@@ -32,6 +32,10 @@ static double molar_mass = 0;
 static double flow_rate = 0;
 static ufvm::Point stack_outlet(0,0,0);
 
+// Project root containing Input/ and Output/. Defaults to ".." so the
+// executable can be run from build/; override with the first CLI argument.
+static std::string project_dir = "..";
+
 std::string trim(const std::string& str)
 {
     size_t first = str.find_first_not_of(" \t");
@@ -92,7 +96,7 @@ bool setStackOutlet(const std::string& str)
 
 bool readInputParams()
 {
-    const std::string inputParamsPath = "../Input/inputParams";
+    const std::string inputParamsPath = project_dir + "/Input/inputParams";
     std::ifstream inputFile(inputParamsPath);
 
     if(!inputFile.is_open())
@@ -148,6 +152,11 @@ bool readInputParams()
                 }
             }
         }
+    }
+    if(molar_mass <= 0 || flow_rate <= 0)
+    {
+        std::cerr << "molar_mass and flow_rate must be set to positive values in inputParams" << std::endl;
+        return false;
     }
     std::cout << "Molar Mass " << molar_mass << std::endl;
     std::cout << "Stack Outlet " << stack_outlet << std::endl;
@@ -205,7 +214,9 @@ std::vector<std::pair<std::string, std::string>> process_chunk(const std::string
                 commaPos = line.find(',', strIdx);
                 curr = line.substr(strIdx, commaPos - strIdx);
                 double ppm = std::stod(curr);
-                realm.addrecevier_measurement(((double)(ppm * 0.72)/(double)1000));
+                // ppm -> mg/m^3 = ppm * M / V_m (ideal gas, 25 degC, 1 atm), then -> g/m^3
+                const double mg_per_m3_per_ppm = molar_mass / molar_volume_ideal_gas;
+                realm.addrecevier_measurement((ppm * mg_per_m3_per_ppm) / 1000.0);
                 strIdx = commaPos + 1;
                 //std::cout << "Receiver Measurment " << ppm << std::endl;
             }
@@ -219,7 +230,8 @@ std::vector<std::pair<std::string, std::string>> process_chunk(const std::string
                 if(commaPos == std::string::npos)
                     commaPos = line.length();
                 curr = line.substr(strIdx, commaPos - strIdx);
-                double windAngle = std::stod(curr);
+                // Input wind angle is in degrees; the model works in radians
+                double windAngle = std::stod(curr) * M_PI / 180.0;
                 strIdx = commaPos + 1;
                 ufvm::Velocity v(windVelocity, windAngle);
                 realm.addwind_velocity(v);
@@ -270,6 +282,10 @@ std::vector<std::streampos> calculate_offsets(const std::string& filePath, size_
 
 int main(int argc, char *argv[])
 {
+    if(argc > 1)
+        project_dir = argv[1];
+    std::cout << "Project directory " << project_dir << std::endl;
+
     std::cout << "Read Input Params " << std::endl;
     if(!readInputParams())
     {
@@ -281,7 +297,7 @@ int main(int argc, char *argv[])
     const size_t linesPerChunk = 100;
     const size_t maxFutures = 5;
     const size_t headerLines = 1;
-    const std::string filePath = "../Input/data.csv";
+    const std::string filePath = project_dir + "/Input/data.csv";
 
     std::cout << "Calculate offsets " << std::endl;
     std::vector<std::streampos> offsets = calculate_offsets(filePath, linesPerChunk, headerLines);
@@ -315,7 +331,7 @@ int main(int argc, char *argv[])
     }
 */
     
-    const std::string outfilePath = "../Output/forward_model_data.csv";
+    const std::string outfilePath = project_dir + "/Output/forward_model_data.csv";
     std::ofstream ofs(outfilePath);
 
     if(ofs.is_open())
